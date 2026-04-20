@@ -496,12 +496,13 @@ let photoObserver;
 // ═══════════════════════════════════════════
 //  STATE — VIDEOS
 // ═══════════════════════════════════════════
-let currentVcat     = 'Tanzania';
-let videoSearch     = '';
-let nextPageToken   = '';
-let isVideoLoading  = false;
-let totalVideos     = 0;
+let currentVcat       = 'Tanzania';
+let videoSearch       = '';
+let nextPageToken     = '';
+let isVideoLoading    = false;
+let totalVideos       = 0;
 let videoObserver;
+let videoFirstLoad    = true;
 
 // ═══════════════════════════════════════════
 //  MODE SWITCH
@@ -640,20 +641,23 @@ async function fetchYouTubeVideos(query, pageToken = '') {
 
 async function loadMoreVideos() {
   if (isVideoLoading) return;
-  if (!nextPageToken && totalVideos > 0) return;
+  if (!videoFirstLoad && !nextPageToken && totalVideos > 0) return;
   isVideoLoading = true;
   document.getElementById('videoLoader').style.display = 'block';
   try {
     const q = videoSearch || currentVcat || 'Tanzania';
     const videos = await fetchYouTubeVideos(q, nextPageToken);
+    videoFirstLoad = false;
     totalVideos += videos.length;
     renderVideos(videos);
     document.getElementById('videoMetaText').innerHTML = `Video: <strong>${totalVideos}</strong> zimepatikana`;
     if (videos.length === 0 && totalVideos === 0)
       document.getElementById('videoEmpty').style.display = 'block';
   } catch(e) {
-    console.error(e);
-    showToast('❌ ' + (e.message || 'Hitilafu ya YouTube API'));
+    console.error('YouTube Error:', e);
+    const errBox = document.getElementById('videoEmpty');
+    errBox.style.display = 'block';
+    errBox.innerHTML = `<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="15" rx="3"/><polyline points="17 2 12 7 7 2"/></svg><h3>Hitilafu ya YouTube API</h3><p style="max-width:320px;margin:8px auto;font-size:.8rem;color:#e8304a;">${e.message || 'Hakuna jibu kutoka YouTube'}</p><p style="font-size:.75rem;margin-top:6px;">Angalia: API key sahihi? Quota imeisha? Referrer imewekwa vizuri?</p>`;
   }
   document.getElementById('videoLoader').style.display = 'none';
   isVideoLoading = false;
@@ -706,7 +710,7 @@ function setupVideoObserver() {
 }
 
 function resetAndLoadVideos() {
-  nextPageToken = ''; isVideoLoading = false; totalVideos = 0;
+  nextPageToken = ''; isVideoLoading = false; totalVideos = 0; videoFirstLoad = true;
   document.getElementById('videoGallery').innerHTML = '';
   document.getElementById('videoEmpty').style.display = 'none';
   const s = document.getElementById('vsentinel'); if (s) s.remove();
