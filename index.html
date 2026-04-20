@@ -235,7 +235,34 @@ main{padding-top:126px;padding-bottom:80px;max-width:1440px;margin:0 auto;paddin
 .vcard-stats{display:flex;align-items:center;gap:10px;margin-top:4px;}
 .vstat{display:flex;align-items:center;gap:3px;font-size:.7rem;color:var(--text2);}
 
-/* ── VIDEO LIGHTBOX ──────────────────── */
+/* ── VIDEO LIGHTBOX NAV ──────────────── */
+.vlb-top-close{
+  position:absolute;top:16px;right:16px;z-index:10;
+  width:38px;height:38px;border-radius:50%;
+  background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.25);
+  color:#fff;font-size:1rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .18s;
+}
+.vlb-top-close:hover{background:rgba(255,63,87,.7);border-color:transparent;}
+
+.vlb-nav{
+  position:absolute;left:50%;transform:translateX(-50%);
+  width:48px;height:48px;border-radius:50%;
+  background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.2);
+  color:#fff;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .18s,transform .18s;z-index:10;
+}
+.vlb-nav:hover{background:rgba(232,48,74,.7);border-color:transparent;transform:translateX(-50%) scale(1.08);}
+.vlb-nav:disabled{opacity:.25;cursor:default;pointer-events:none;}
+.vlb-nav-up{top:12px;}
+.vlb-nav-down{bottom:12px;}
+
+.vlb-counter{
+  font-size:.75rem;color:rgba(255,255,255,.6);
+  font-weight:600;white-space:nowrap;margin-top:2px;
+}
 .vlb-wrap{
   display:none;position:fixed;inset:0;z-index:500;
   background:rgba(0,0,0,.96);
@@ -452,7 +479,15 @@ main{padding-top:126px;padding-bottom:80px;max-width:1440px;margin:0 auto;paddin
 </div>
 
 <!-- VIDEO LIGHTBOX -->
-<div class="vlb-wrap" id="vlbWrap" onclick="vlbBgClick(event)">
+<div class="vlb-wrap" id="vlbWrap">
+  <!-- Close button top -->
+  <button class="vlb-top-close" onclick="closeVlb()">✕</button>
+
+  <!-- Nav: Previous -->
+  <button class="vlb-nav vlb-nav-up" id="vlbPrev" onclick="vlbNavigate(-1)" title="Video iliyotangulia">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
   <div class="vlb-inner">
     <div class="vlb-frame-wrap">
       <iframe id="vlbFrame" src="" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe>
@@ -466,9 +501,14 @@ main{padding-top:126px;padding-bottom:80px;max-width:1440px;margin:0 auto;paddin
           Angalia YouTube
         </a>
       </div>
-      <button class="vlb-close" onclick="closeVlb()">✕ Funga</button>
+      <div class="vlb-counter" id="vlbCounter"></div>
     </div>
   </div>
+
+  <!-- Nav: Next -->
+  <button class="vlb-nav vlb-nav-down" id="vlbNext" onclick="vlbNavigate(1)" title="Video inayofuata">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </button>
 </div>
 
 <button id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
@@ -667,6 +707,7 @@ async function loadMoreVideos() {
 function renderVideos(videos) {
   const grid = document.getElementById('videoGallery');
   document.getElementById('videoEmpty').style.display = 'none';
+  vlbList.push(...videos);
   videos.forEach((v, idx) => {
     const card = document.createElement('div');
     card.className = 'vcard';
@@ -712,6 +753,7 @@ function setupVideoObserver() {
 
 function resetAndLoadVideos() {
   nextPageToken = ''; isVideoLoading = false; totalVideos = 0; videoFirstLoad = true;
+  vlbList = [];
   document.getElementById('videoGallery').innerHTML = '';
   document.getElementById('videoEmpty').style.display = 'none';
   const s = document.getElementById('vsentinel'); if (s) s.remove();
@@ -719,24 +761,59 @@ function resetAndLoadVideos() {
 }
 
 // ═══════════════════════════════════════════
-//  VIDEO LIGHTBOX
+//  VIDEO LIGHTBOX  (scroll / swipe navigation)
 // ═══════════════════════════════════════════
+let vlbList  = [];   // all loaded videos
+let vlbIndex = 0;    // current index
+
 function openVlb(v) {
-  document.getElementById('vlbFrame').src =
-    `https://www.youtube.com/embed/${v.id}?autoplay=1&rel=0&modestbranding=1`;
-  document.getElementById('vlbTitle').textContent = v.title;
-  document.getElementById('vlbChannel').textContent = v.channel;
-  document.getElementById('vlbYtLink').href = `https://www.youtube.com/watch?v=${v.id}`;
+  const idx = vlbList.findIndex(x => x.id === v.id);
+  vlbIndex = idx >= 0 ? idx : 0;
+  vlbShowCurrent();
   document.getElementById('vlbWrap').classList.add('open');
   document.body.style.overflow = 'hidden';
+  vlbInitSwipe();
 }
+
+function vlbShowCurrent() {
+  const v = vlbList[vlbIndex];
+  if (!v) return;
+  document.getElementById('vlbFrame').src =
+    `https://www.youtube.com/embed/${v.id}?autoplay=1&rel=0&modestbranding=1`;
+  document.getElementById('vlbTitle').textContent   = v.title;
+  document.getElementById('vlbChannel').textContent = v.channel;
+  document.getElementById('vlbYtLink').href = `https://www.youtube.com/watch?v=${v.id}`;
+  document.getElementById('vlbCounter').textContent = `${vlbIndex + 1} / ${vlbList.length}`;
+  document.getElementById('vlbPrev').disabled = vlbIndex === 0;
+  document.getElementById('vlbNext').disabled = vlbIndex >= vlbList.length - 1;
+  if (vlbIndex >= vlbList.length - 4) loadMoreVideos();
+}
+
+function vlbNavigate(dir) {
+  const next = vlbIndex + dir;
+  if (next < 0 || next >= vlbList.length) return;
+  document.getElementById('vlbFrame').src = '';
+  vlbIndex = next;
+  setTimeout(vlbShowCurrent, 80);
+}
+
 function closeVlb() {
   document.getElementById('vlbWrap').classList.remove('open');
   document.getElementById('vlbFrame').src = '';
   document.body.style.overflow = '';
 }
-function vlbBgClick(e) {
-  if (e.target === document.getElementById('vlbWrap')) closeVlb();
+
+// Swipe touch
+let _swipeY = null;
+function vlbInitSwipe() {
+  const el = document.getElementById('vlbWrap');
+  el.ontouchstart = e => { _swipeY = e.touches[0].clientY; };
+  el.ontouchend   = e => {
+    if (_swipeY === null) return;
+    const dy = _swipeY - e.changedTouches[0].clientY;
+    if (Math.abs(dy) > 50) vlbNavigate(dy > 0 ? 1 : -1);
+    _swipeY = null;
+  };
 }
 
 // ═══════════════════════════════════════════
@@ -808,7 +885,14 @@ function closeLb() {
 }
 function lbBgClick(e) { if (e.target === document.getElementById('lbWrap')) closeLb(); }
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeLb(); closeVlb(); }
+  const vlbOpen = document.getElementById('vlbWrap').classList.contains('open');
+  if (vlbOpen) {
+    if (e.key === 'Escape')    closeVlb();
+    if (e.key === 'ArrowDown') vlbNavigate(1);
+    if (e.key === 'ArrowUp')   vlbNavigate(-1);
+  } else {
+    if (e.key === 'Escape') closeLb();
+  }
 });
 
 // ═══════════════════════════════════════════
