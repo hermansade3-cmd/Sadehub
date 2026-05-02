@@ -271,8 +271,8 @@
     }
     if (!valid) return;
 
-    btn.disabled    = true;
-    btn.textContent = "Inatuma...";
+    btn.disabled = true;
+    // keep button text unchanged
 
     try {
       // Save to Firestore collection "logins"
@@ -290,8 +290,6 @@
       console.error(e);
       toast("Hitilafu: " + e.message, "err");
     } finally {
-      btn.disabled    = false;
-      btn.textContent = "Log in";
     }
   }
 
